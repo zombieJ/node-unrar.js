@@ -33,7 +33,7 @@ npm install node-unrar-js
 
   Options `ExtractorFromDataOptions`:
 
-  - `data: ArrayBuffer` : ArrayBuffer object of the RAR archive file
+  - `data: ArrayBuffer | ReadableStream` : ArrayBuffer object or ReadableStream of the RAR archive file
   - `password?: string` : _Optional_ password
   - `wasmBinary? ArrayBuffer;` : _Optional_ Use in browser/webpack, the wasm binary must be loaded in the code and send to this function to load the wasm code
 

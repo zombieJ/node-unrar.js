@@ -18,18 +18,43 @@ export class ExtractorData extends Extractor<Uint8Array> {
   private currentFd: number;
 
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types,@typescript-eslint/no-explicit-any
-  constructor(unrar: any, data: ArrayBuffer, password: string) {
+  constructor(unrar: any, data: ArrayBuffer | ReadableStream, password: string) {
     super(unrar, password);
     this.dataFiles = {};
     this.dataFileMap = {};
     this.currentFd = 1;
+    this._filePath = '_defaultUnrarJS_.rar';
+
+    if (data instanceof ArrayBuffer) {
+      const rarFile = {
+        file: new DataFile(new Uint8Array(data)),
+        fd: this.currentFd++,
+      };
+      this.dataFiles[this._filePath] = rarFile;
+      this.dataFileMap[rarFile.fd] = this._filePath;
+    } else {
+      this.loadStreamData(data);
+    }
+  }
+
+  private async loadStreamData(stream: ReadableStream): Promise<void> {
+    const reader = stream.getReader();
+    const dataFile = new DataFile();
     const rarFile = {
-      file: new DataFile(new Uint8Array(data)),
+      file: dataFile,
       fd: this.currentFd++,
     };
-    this._filePath = '_defaultUnrarJS_.rar';
     this.dataFiles[this._filePath] = rarFile;
     this.dataFileMap[rarFile.fd] = this._filePath;
+
+    let done: boolean | undefined;
+    do {
+      const { value, done: streamDone } = await reader.read();
+      done = streamDone;
+      if (value) {
+        dataFile.write(new Uint8Array(value));
+      }
+    } while (!done);
   }
 
   public extract(options: ExtractOptions = {}): ArcFiles<Uint8Array> {

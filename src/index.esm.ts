@@ -5,7 +5,7 @@ export * from './js/Extractor';
 
 export interface ExtractorFromDataOptions {
   wasmBinary?: ArrayBuffer;
-  data: ArrayBuffer;
+  data: ArrayBuffer | ReadableStream;
   password?: string;
 }
 
